@@ -80,10 +80,13 @@ class MainWindow(QWidget):
         exit_btn.clicked.connect(self.close_app)
 
     def start(self):
-        print('Starting...')
-        rotate_thread = threading.Thread(name='start_rotation', target=self.rotate)
-        rotate_thread.daemon = True
-        rotate_thread.start()
+        if platform.system() == 'Linux':
+            print('Starting...')
+            rotate_thread = threading.Thread(name='start_rotation', target=self.rotate)
+            rotate_thread.daemon = True
+            rotate_thread.start()
+        else:
+            print("Can't start. Not on Linux System.")
 
     def rotate(self):
         self.pi.write(self.enable, 0)
@@ -117,4 +120,6 @@ class MainWindow(QWidget):
 if __name__ == '__main__':
     app = QApplication([])
     window = MainWindow()
-    sys.exit(app.exec())
+    appex = app.exec()
+    print('appex', appex)
+    # sys.exit(app.exec())
