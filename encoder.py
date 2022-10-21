@@ -1,34 +1,53 @@
 import pigpio
 from time import sleep
 
-pi = pigpio.pi()
+import global_values
 
-pin_a = 27
-pin_i = 27
-pin_b = 17
+def encoder():
+    pi = pigpio.pi()
 
-pi.set_mode(pin_a, pigpio.INPUT)
-pi.set_mode(pin_i, pigpio.INPUT)
-pi.set_mode(pin_b, pigpio.INPUT)
+    pin_a = 19 # m2:14 m1:19
+    pin_b = 6 # m2:15 m1:6
+    pin_i = 26 # m2:18 m1:26
 
-clkLastState = pi.read(pin_a)
+    pi.set_mode(pin_a, pigpio.INPUT)
+    pi.set_mode(pin_b, pigpio.INPUT)
+    pi.set_mode(pin_i, pigpio.INPUT)
 
-while True:
-    read_a = pi.read(pin_a)
-    read_i = pi.read(pin_i)
-    read_b = pi.read(pin_b)
-    print(f'pin_a: {read_a}')
-    print(f'pin_i: {read_i}')
-    print(f'pin_b: {read_b}')
-    # print('\n')
-    # if read_a != clkLastState:
-    #     if dtState != read_a:
-    #         counter += 1
-    #     else:
-    #         counter -= 1
-    #     print(counter)
-    # clkLastState = clkState
-    sleep(1)
-    print('\n\n')
+    degree = global_values.get_degree()
+    read_a_prev = pi.read(pin_a)
+
+    print(f'Start values of encoder: Pin A: {pi.read(pin_a)}, Pin B: {pi.read(pin_b)}')
+
+    while True:
+        read_a = pi.read(pin_a)
+        read_b = pi.read(pin_b)
+        read_i = pi.read(pin_i)
+        print(read_a, read_b, read_i)
+        # print(f'pin_a: {read_a}')
+        # print(f'pin_b: {read_b}')
+        # print('\n')
+        if read_a_prev != read_a:
+            # print(f'read_a_prev != read_a: {read_a_prev != read_a}')
+            # sleep(0.5)
+            if read_b != read_a:
+                # print(read_a, read_b)
+                # print('links')
+                global_values.update_rot_dir('left')
+                # print(f'read_b != read_a: {read_b != read_a}')
+                # sleep(0.5)
+                degree += 1
+                global_values.update_degree(degree)
+            else:
+                # print(read_a, read_b)
+                # print('rechts')
+                global_values.update_rot_dir('right')
+                # print(f'read_b != read_a: {read_b != read_a}')
+                degree -= 1
+                global_values.update_degree(degree)
+            # print(counter)
+        read_a_prev = read_a
+        sleep(0.01)
+        # print('\n')
 
 
