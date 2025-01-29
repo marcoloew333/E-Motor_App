@@ -1,18 +1,21 @@
+
 from PyQt5.QtWidgets import QApplication, \
     QWidget, \
     QPushButton, \
     QLineEdit, \
     QLabel
 from PyQt5.QtCore import QObject, pyqtSignal, QThread
-import pigpio
+import platform
+if platform.system() == "Linux":
+    import pigpio
 from time import sleep
 import os
 import sys
-import platform
-import threading
+# import threading
 
-from encoder import encoder
-import global_values
+from servo import Servo, ServoDummy
+# from encoder import encoder
+# import global_values
 
 if os.environ.get('DISPLAY', '') == '':
     # print('no display found. Using :0.0')
@@ -22,11 +25,11 @@ if os.environ.get('DISPLAY', '') == '':
 class RotateWorker(QObject):
     finished = pyqtSignal()
 
-    def __init__(self, pi, rotations, dir, enable, step):
+    def __init__(self, pi, rotations, direction, enable, step):
         super().__init__()
         self.pi = pi
         self.rotations = rotations
-        self.dir = dir
+        self.dir = direction
         self.enable = enable
         self.step = step
 
@@ -37,7 +40,6 @@ class RotateWorker(QObject):
             direction = 1 if rounds < 0 else 0
             if rounds < 0:
                 rounds = rounds * -1
-
             if platform.system() == "Linux":
                 self.pi.write(self.dir, direction)
                 for i in range(0, int(rounds)):
@@ -57,7 +59,7 @@ class RotateWorker(QObject):
         except BaseException as e:
             print("Error in RotationWorker", e)
         finally:
-            print("RotationWorker finished")
+            # print("RotationWorker finished")
             self.finished.emit()
 
 
@@ -74,9 +76,11 @@ class MainWindow(QWidget):
         self.enable = None
         self.rotations_input = None
         self.pi = None
+        self.servo = ServoDummy()
         if platform.system() == 'Linux':
             self.pi = pigpio.pi()
-            self.init_stepper()
+            # self.init_stepper()
+            self.servo = Servo(self.pi)
         self.rotations = 360
         self.initialize_ui()
         # self.start_direction_sensor()
@@ -92,24 +96,24 @@ class MainWindow(QWidget):
         self.pi.set_mode(self.dir, pigpio.OUTPUT)
         self.pi.write(self.dir, 0)
 
-    def start_direction_sensor(self):
-        # encoder()  # Das Starten als Thread ist scheinbar nicht notwendig
-        # t1 = threading.Thread(target=encoder)
-        # t1.daemon = True
-        # t1.start()
-        t2 = threading.Thread(target=self.update_rotation_direction)
-        t2.daemon = True
-        t2.start()
-
-    def update_rotation_direction(self):
-        while True:
-            rot_dir = global_values.get_rot_dir()
-            # print(f'current value of rot: {rot_dir}')
-            # self.direction_input.setText(str(rot_dir))
-
-            degree = global_values.get_degree()
-            self.direction_input.setText(str(degree))
-            sleep(0.1)
+    # def start_direction_sensor(self):
+    #     # encoder()  # Das Starten als Thread ist scheinbar nicht notwendig
+    #     # t1 = threading.Thread(target=encoder)
+    #     # t1.daemon = True
+    #     # t1.start()
+    #     t2 = threading.Thread(target=self.update_rotation_direction)
+    #     t2.daemon = True
+    #     t2.start()
+    #
+    # def update_rotation_direction(self):
+    #     while True:
+    #         rot_dir = global_values.get_rot_dir()
+    #         # print(f'current value of rot: {rot_dir}')
+    #         # self.direction_input.setText(str(rot_dir))
+    #
+    #         degree = global_values.get_degree()
+    #         self.direction_input.setText(str(degree))
+    #         sleep(0.1)
 
     def initialize_ui(self):
         self.setGeometry(20, 200, 700, 350)
@@ -139,7 +143,7 @@ class MainWindow(QWidget):
         start_button = QPushButton('Start', self)
         start_button.move(10, 100)
         start_button.resize(200, 80)
-        start_button.clicked.connect(self.start)
+        start_button.clicked.connect(self.servo.move_servo)
 
         exit_btn = QPushButton('Exit', self)
         exit_btn.move(380, 200)
@@ -156,7 +160,7 @@ class MainWindow(QWidget):
         # try:
         print('Starting...')
         self.t = QThread()  # parent=self
-        self.w = RotateWorker(pi=self.pi, rotations=self.rotations, dir=self.dir, enable=self.enable, step=self.step)
+        self.w = RotateWorker(pi=self.pi, rotations=self.rotations, direction=self.dir, enable=self.enable, step=self.step)
         self.w.moveToThread(self.t)
         self.t.started.connect(self.w.run)
         self.w.finished.connect(self.t.quit)
