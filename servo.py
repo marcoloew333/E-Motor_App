@@ -1,6 +1,5 @@
 import pigpio
 
-
 class Servo:
     def __init__(self, pigpio_pi, pwm_pin=18):
         self.pi = pigpio_pi
@@ -20,6 +19,26 @@ class Servo:
         print(pulse_width)
         self.pi.set_servo_pulsewidth(self.pwm, 500)
 
+pi = pigpio.pi()
+my_servo = Servo(pi)
+my_servo.move_servo()
+my_freq = my_servo.freq  # Lesen
+my_servo.freq = 60  # Schreiben
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 class ServoDummy:
     def angle_to_pulse_width(self):
@@ -27,6 +46,9 @@ class ServoDummy:
 
     def move_servo(self):
         pass
+
+
+
 
 
 if __name__ == '__main__':
