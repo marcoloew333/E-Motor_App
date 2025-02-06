@@ -35,7 +35,7 @@ def move_motor(steps, direction, delay):
         time.sleep(delay)
 
 # Motor testweise ansteuern
-#move_motor(2000, 1, 0.001)
+move_motor(2000, 1, 0.001)
 
 
 #print("Zustand der Lichtschranke:", pi.read(LS_PIN))
