@@ -1,39 +1,47 @@
 # Bibliotheken laden
-#Lichtschranke
-#from machine import Pin
-#Onboard LED
-#from machine import Pin
-from time import sleep
+import pigpio
+import time
+# Raspberry Pi GPIO initialisieren
+pi = pigpio.pi()       # pi accesses the local Pi's GPIO
 
-# Initialisierung von GPIO16 als Eingang
-#sensor_d = Pin(16, Pin.IN)
-# Initialisierung von GPIO25 als Ausgang
-#led_onboard = Pin(25, Pin.OUT)
+# GPIO-Pins definieren für Stepper
+DIR_PIN = 17  # Richtungspin
+STEP_PIN = 27  # Steppin
+ENA_PIN = 22    #Enable
 
-# Zähler
-count = 0
+#GPIO-Pin definieren für Lichtschranke
+LS_PIN = 23    #Lichtschranke
 
-# Funktion: Interrupt-Behandlung
-def sensor_irq(pin):
-    global count
-    count += 1
-    print(count)
-#
-# Interrupt-Steuerung
-#sensor_d.irq(trigger=Pin.IRQ_RISING, handler=sensor_irq)
+# Pins als Ausgang setzen
+pi.set_mode(DIR_PIN, pigpio.OUTPUT)
+pi.set_mode(STEP_PIN, pigpio.OUTPUT)
+pi.set_mode(ENA_PIN, pigpio.OUTPUT)
+pi.write(ENA_PIN, 0)
+pi.write(DIR_PIN, 0)
+
+# Initialisierung von GPIO16 als Eingang für Lichtschranke
+pi.set_mode( LS_PIN, pigpio.INPUT)  # GPIO  16 as input
+
+#funktion zum ansteuern des Steppers
+def move_motor(steps, direction, delay):
+    # Richtung setzen
+    pi.write(DIR_PIN, direction)
+
+    # Schritte ausführen
+    for _ in range(steps):
+        pi.write(STEP_PIN, 1)
+        time.sleep(delay)
+        pi.write(STEP_PIN, 0)
+        time.sleep(delay)
+
+# Motor testweise ansteuern
+move_motor(2000, 1, 0.001)
 
 
-print("Hello WOrld")
+#print("Zustand der Lichtschranke:", pi.read(LS_PIN))
+
+pi.stop()
 
 
 
-#code zur onboard led
 
-# LED einschalten
-#led_onboard.on()
-
-# 5 Sekunden warten
-#sleep(5)
-
-# LED ausschalten
-#led_onboard.off()
