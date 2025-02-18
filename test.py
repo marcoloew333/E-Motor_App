@@ -34,22 +34,40 @@ class Stepper:
         sleep(15)
 
     def turn(self):
-        pi.write(self.enable, 0)
-        sleep(10)
-        rounds = 20*8*33
-        for i in range(rounds):
-            print(i)
-            pi.write(self.step, 1)
-            sleep(0.001)
-            pi.write(self.step, 0)
-            sleep(0.001)
+        try:
+            counter = 0
+            while counter < 10000:
+                counter += 1
+                pi.write(self.dir, 1)
+                # pi.write(self.enable, 0)
+                sleep(0.5)
+                rounds = 200
+                for i in range(rounds):
+                    pi.write(self.step, 1)
+                    sleep(0.001)
+                    pi.write(self.step, 0)
+                    sleep(0.001)
 
-        sleep(5)
-        pi.write(self.enable, 1)
+                pi.write(self.dir, 0)
+                for i in range(rounds):
+                    pi.write(self.step, 1)
+                    sleep(0.001)
+                    pi.write(self.step, 0)
+                    sleep(0.001)
+
+                sleep(0.5)
+                pi.write(self.enable, 1)
+
+        except KeyboardInterrupt:
+            print('interrupted')
+        finally:
+            print('finished')
+
 
 
 tmc2208 = Stepper()
 tmc2208.start()
+
 tmc2208.turn()
 
 pi.stop()
