@@ -29,14 +29,19 @@ def move_motor(steps, direction, delay):
 
     # Schritte ausführen
     for _ in range(steps):
-        pi.write(STEP_PIN, 1)
-        time.sleep(delay)
         pi.write(STEP_PIN, 0)
+        time.sleep(delay)
+        pi.write(STEP_PIN, 1)
         time.sleep(delay)
 
 # Motor testweise ansteuern
-move_motor(2000, 1, 0.001)
+for _ in range(1):
+    move_motor(5000, 0, 0.0005)
+    time.sleep(0.01)
+    move_motor(5000, 1, 0.0005)
+    time.sleep(1)
 
+pi.write(ENA_PIN, 1)
 
 #print("Zustand der Lichtschranke:", pi.read(LS_PIN))
 
